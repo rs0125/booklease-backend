@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Google Sign-In with Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js"></script>
+</head>
+<body>
+  <h1>Google Login</h1>
+  <button id="login">Sign in with Google</button>
+
+  <p id="output"></p>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAI8qsqGUH8NgQrYGxo7Z2pb0EIgymIhns",
+    authDomain: "booklease-75985.firebaseapp.com",
+    projectId: "booklease-75985",
+    storageBucket: "booklease-75985.firebasestorage.app",
+    messagingSenderId: "247336846072",
+    appId: "1:247336846072:web:43fba0aee4e2abab6bb10d",
+    measurementId: "G-WGWQQVZZ8K"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // Optional: restrict to a specific org domain
+  provider.setCustomParameters({
+    prompt: "select_account", hd: "vitstudent.ac.in" });
+  
+
+  document.getElementById("login").onclick = () => {
+    signInWithPopup(auth, provider)
+      .then(result => result.user.getIdToken())
+      .then(token => {
+        return fetch("http://localhost:8080/api/hello", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+      })
+      .then(res => res.text())
+      .then(msg => {
+        document.getElementById("output").innerText = msg;
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("output").innerText = "Login failed.";
+      });
+  };
+
+</script>
+
+
+</body>
+</html>
