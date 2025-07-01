@@ -38,6 +38,7 @@
     signInWithPopup(auth, provider)
       .then(result => result.user.getIdToken())
       .then(token => {
+        console.log("ID Token:", token);
         return fetch("http://localhost:8080/api/hello", {
           method: "GET",
           headers: {

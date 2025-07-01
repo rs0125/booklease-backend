@@ -12,6 +12,7 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 	apiGroup := r.Group("/api")
 	{
 		apiGroup.GET("/hello", middleware.RequireAuth(app), api.HelloHandler)
+		apiGroup.GET("/FAQ", api.GetFAQ)
 	}
 
 	BookRoutes := r.Group("/book")

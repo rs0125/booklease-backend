@@ -2,16 +2,6 @@ package models
 
 import "time"
 
-type User struct {
-	ID             uint `gorm:"primaryKey"`
-	Username       string
-	Password       string
-	RegistrationNo string
-	IsAdmin        bool
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-}
-
 type Book struct {
 	ID          uint `gorm:"primaryKey"`
 	Title       string
@@ -52,14 +42,4 @@ type Wishlist struct {
 	AddedAt time.Time
 }
 
-type Admin struct {
-	ID        uint `gorm:"primaryKey"`
-	AdminID   uint
-	CreatedAt time.Time
-}
 
-type FAQ struct {
-	ID       uint `gorm:"primaryKey"`
-	Question string
-	Answer   string
-}
