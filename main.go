@@ -11,6 +11,7 @@ import (
 
 func main() {
 	services.InitFirebase()
+	services.InitDatabase() // ← Initialize DB here
 	r := gin.Default()
 
 	r.GET("/", func(c *gin.Context) {

@@ -2,50 +2,63 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
 	"bookapi/models"
+	"bookapi/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-var books = []models.Book{
-	{ID: "1", Title: "Go in Action", Author: "William Kennedy"},
-	{ID: "2", Title: "The Go Programming Language", Author: "Alan Donovan"},
-}
-
 func GetBooks(c *gin.Context) {
+	var books []models.Book
+	if err := services.DB.Find(&books).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch books"})
+		return
+	}
 	c.JSON(http.StatusOK, books)
 }
 
 func GetBook(c *gin.Context) {
-	id := c.Param("id")
-	for _, b := range books {
-		if b.ID == id {
-			c.JSON(http.StatusOK, b)
-			return
-		}
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+
+	var book models.Book
+	if err := services.DB.First(&book, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+		return
+	}
+	c.JSON(http.StatusOK, book)
 }
 
 func CreateBook(c *gin.Context) {
 	var newBook models.Book
-	if err := c.BindJSON(&newBook); err != nil {
+	if err := c.ShouldBindJSON(&newBook); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	books = append(books, newBook)
+	if err := services.DB.Create(&newBook).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book"})
+		return
+	}
 	c.JSON(http.StatusCreated, newBook)
 }
 
 func DeleteBook(c *gin.Context) {
-	id := c.Param("id")
-	for i, b := range books {
-		if b.ID == id {
-			books = append(books[:i], books[i+1:]...)
-			c.JSON(http.StatusOK, gin.H{"message": "Book deleted"})
-			return
-		}
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+
+	if err := services.DB.Delete(&models.Book{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete book"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Book deleted"})
 }
