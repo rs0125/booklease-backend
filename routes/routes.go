@@ -23,4 +23,9 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		BookRoutes.POST("/", api.CreateBook)
 		BookRoutes.POST("/:id", api.addToWishlist)
 	}
+
+	UserRoutes := r.Group("/user")
+	{
+		UserRoutes.POST("/signup", api.CreateOrFetchUser)
+	}
 }

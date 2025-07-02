@@ -23,7 +23,10 @@ func InitDatabase() {
 		log.Fatal("❌ DATABASE_URL not found in env")
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true, // ✅ disables prepared statement caching
+	}), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("❌ Failed to connect to database: %v", err)
 	}
@@ -34,7 +37,6 @@ func InitDatabase() {
 	db.AutoMigrate(
 		&models.User{},
 		&models.Book{},
-		&models.Note{},
 		&models.Rental{},
 		&models.Wishlist{},
 		&models.Admin{},

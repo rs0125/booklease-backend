@@ -26,14 +26,6 @@ func SeedData() {
 		DB.Create(&b)
 	}
 
-	// ✅ Notes
-	notes := []models.Note{
-		{Title: "DBMS Notes", Subject: "DBMS", Description: "ER Diagrams", FilePath: "notes/dbms.pdf", IsPublic: true, UploadedBy: 1},
-		{Title: "OS Notes", Subject: "Operating Systems", Description: "Process Scheduling", FilePath: "notes/os.pdf", IsPublic: false, UploadedBy: 1},
-	}
-	for _, n := range notes {
-		DB.Create(&n)
-	}
 
 	// ✅ Rentals
 	bookID := uint(1)
