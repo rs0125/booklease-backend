@@ -37,8 +37,22 @@ func RequireAuth(app *firebase.App) gin.HandlerFunc {
 			return
 		}
 
+		uid, ok := token.Claims["user_id"].(string)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "UID not found in token"})
+			return
+		}
+
+		name, ok := token.Claims["name"].(string)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Name not found in token"})
+			return
+		}
+
 		log.Println("✅ Authenticated:", email)
 		c.Set("email", email)
+		c.Set("uid", uid)
+		c.Set("name", name)
 		c.Next()
 	}
 }

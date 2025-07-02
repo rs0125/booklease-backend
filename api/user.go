@@ -3,44 +3,27 @@ package api
 import (
 	"bookapi/models"
 	"bookapi/services"
-	"context"
+	"errors"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
 
+	"gorm.io/gorm"
+
 	"github.com/gin-gonic/gin"
 )
 
 func CreateOrFetchUser(c *gin.Context) {
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing or malformed Authorization header"})
-		return
-	}
-	idToken := strings.TrimPrefix(authHeader, "Bearer ")
+	uid := c.GetString("uid")
+	name := c.GetString("name") // Optional: you can also set this in middleware if needed
 
-	authClient, err := services.App.Auth(context.Background())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Firebase Auth init failed"})
+	if uid == "" || name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing user data from token"})
 		return
 	}
 
-	token, err := authClient.VerifyIDToken(context.Background(), idToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid ID token"})
-		return
-	}
-
-	uid, okUID := token.Claims["user_id"].(string)
-	name, okName := token.Claims["name"].(string)
-	if !okUID || !okName {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token claims"})
-		return
-	}
-
-	var regNumPattern = regexp.MustCompile(`^\d{2}[A-Z]{3}\d{4}$`)
-
+	regNumPattern := regexp.MustCompile(`^\d{2}[A-Z]{3}\d{4}$`)
 	parts := strings.Fields(name)
 	var registrationNo string
 	for _, word := range parts {
@@ -49,11 +32,11 @@ func CreateOrFetchUser(c *gin.Context) {
 			break
 		}
 	}
-
 	if registrationNo == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to extract registration number"})
 		return
 	}
+
 	var user models.User
 	result := services.DB.Where("uid = ?", uid).First(&user)
 	if result.Error == nil {
@@ -80,39 +63,47 @@ type PhoneUpdateRequest struct {
 	PhoneNumber string `json:"phone_number"`
 }
 
+func GetUserProfile(c *gin.Context) {
+	uid := c.GetString("uid") // assuming middleware has already set UID in context
+
+	var user models.User
+	result := services.DB.Select("username", "phone_number", "registration_no", "is_admin").
+		Where("uid = ?", uid).
+		First(&user)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		}
+		return
+	}
+
+	// return only selected fields
+	c.JSON(http.StatusOK, gin.H{
+		"username":        user.Username,
+		"phone_number":    user.PhoneNumber,
+		"registration_no": user.RegistrationNo,
+		"is_admin":        user.IsAdmin,
+		"email":           c.GetString("email"),
+	})
+}
+
 func UpdatePhoneNumber(c *gin.Context) {
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing or malformed Authorization header"})
-		return
-	}
-	idToken := strings.TrimPrefix(authHeader, "Bearer ")
-
-	authClient, err := services.App.Auth(context.Background())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Firebase Auth init failed"})
-		return
-	}
-
-	token, err := authClient.VerifyIDToken(context.Background(), idToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid ID token"})
-		return
-	}
-
-	uid, ok := token.Claims["user_id"].(string)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "UID not found in token"})
+	uid := c.GetString("uid")
+	if uid == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "UID not found in context"})
 		return
 	}
 
 	var req PhoneUpdateRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil || req.PhoneNumber == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid phone number in request"})
 		return
 	}
 
-	// Validate phone number using regex
 	re := regexp.MustCompile(`^[6-9]\d{9}$`)
 	if !re.MatchString(req.PhoneNumber) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Phone number format invalid"})

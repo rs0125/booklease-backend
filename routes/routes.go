@@ -20,14 +20,16 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		BookRoutes.GET("/", api.GetBooks)
 		BookRoutes.GET("/:id", api.GetBook)
 		BookRoutes.DELETE("/:id", api.DeleteBook)
-		BookRoutes.POST("/", api.CreateBook)
+		BookRoutes.POST("/", middleware.RequireAuth(app), api.CreateBook)
 		BookRoutes.POST("/:id/wishlist", api.AddToWishlist)
 		BookRoutes.GET("/wishlist", api.Wishlist)
 	}
 
-	UserRoutes := r.Group("/user")
+	UserRoutes := r.Group("/user", middleware.RequireAuth(app))
 	{
 		UserRoutes.POST("/signup", api.CreateOrFetchUser)
-		UserRoutes.POST("/phone", middleware.RequireAuth(app), api.UpdatePhoneNumber)
+		UserRoutes.POST("/phone", api.UpdatePhoneNumber)
+		UserRoutes.GET("/", api.GetUserProfile)
 	}
+
 }
