@@ -22,4 +22,9 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		BookRoutes.DELETE("/:id", api.DeleteBook)
 		BookRoutes.POST("/", api.CreateBook)
 	}
+
+	UserRoutes := r.Group("/user")
+	{
+		UserRoutes.POST("/signup", api.CreateOrFetchUser)
+	}
 }

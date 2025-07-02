@@ -5,22 +5,12 @@ import "time"
 type Book struct {
 	ID          uint `gorm:"primaryKey"`
 	Title       string
+	Type        string
+	Subject     string
 	Author      string
 	Description string
 	Category    string
 	Available   bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
-
-type Note struct {
-	ID          uint `gorm:"primaryKey"`
-	Title       string
-	Subject     string
-	Description string
-	FilePath    string
-	IsPublic    bool
-	UploadedBy  uint
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -41,5 +31,3 @@ type Wishlist struct {
 	BookID  uint
 	AddedAt time.Time
 }
-
-
