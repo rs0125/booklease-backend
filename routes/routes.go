@@ -21,7 +21,8 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		BookRoutes.GET("/:id", api.GetBook)
 		BookRoutes.DELETE("/:id", api.DeleteBook)
 		BookRoutes.POST("/", api.CreateBook)
-		BookRoutes.POST("/:id", api.addToWishlist)
+		BookRoutes.POST("/:id/wishlist", api.AddToWishlist)
+		BookRoutes.GET("/wishlist", api.Wishlist)
 	}
 
 	UserRoutes := r.Group("/user")

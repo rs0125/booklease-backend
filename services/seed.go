@@ -19,13 +19,12 @@ func SeedData() {
 
 	// ✅ Books
 	books := []models.Book{
-		{Title: "Go in Action", Author: "William Kennedy", Description: "Intro to Go", Category: "Programming", Available: true},
-		{Title: "Clean Code", Author: "Robert C. Martin", Description: "Coding best practices", Category: "Software Engineering", Available: true},
+		{Title: "Go in Action", Subject: "William Kennedy", Description: "Intro to Go", Category: "Programming", Available: true},
+		{Title: "Clean Code", Subject: "Robert C. Martin", Description: "Coding best practices", Category: "Software Engineering", Available: true},
 	}
 	for _, b := range books {
 		DB.Create(&b)
 	}
-
 
 	// ✅ Rentals
 	bookID := uint(1)
@@ -40,7 +39,7 @@ func SeedData() {
 
 	// ✅ Wishlist
 	wishlists := []models.Wishlist{
-		{UserID: 1, BookID: 2, AddedAt: time.Now()},
+		{UserID: 1, BookID: 2},
 	}
 	for _, w := range wishlists {
 		DB.Create(&w)
