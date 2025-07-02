@@ -62,3 +62,25 @@ func DeleteBook(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Book deleted"})
 }
+
+func addToWishlist(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	var wishBook models.Book
+	if err := services.DB.First(&wishBook, id).Error; err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	wish := models.Wishlist{BookID: uint(id)}
+	if err := services.DB.Create(&wish).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add to wishlist"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, wishBook)
+}
