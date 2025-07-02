@@ -28,5 +28,6 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 	UserRoutes := r.Group("/user")
 	{
 		UserRoutes.POST("/signup", api.CreateOrFetchUser)
+		UserRoutes.POST("/phone", middleware.RequireAuth(app), api.UpdatePhoneNumber)
 	}
 }

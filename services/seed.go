@@ -10,8 +10,8 @@ import (
 func SeedData() {
 	// ✅ Users
 	users := []models.User{
-		{Username: "alice", Password: "alice123", RegistrationNo: "22BCE1000", IsAdmin: false},
-		{Username: "bob", Password: "bob123", RegistrationNo: "22BCE1001", IsAdmin: true},
+		{Username: "alice", PhoneNumber: "alice123", RegistrationNo: "22BCE1000", IsAdmin: false},
+		{Username: "bob", PhoneNumber: "bob123", RegistrationNo: "22BCE1001", IsAdmin: true},
 	}
 	for _, u := range users {
 		DB.Create(&u)

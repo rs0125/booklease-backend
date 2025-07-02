@@ -6,6 +6,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -19,46 +20,49 @@ func CreateOrFetchUser(c *gin.Context) {
 	}
 	idToken := strings.TrimPrefix(authHeader, "Bearer ")
 
-	// Firebase Auth client
 	authClient, err := services.App.Auth(context.Background())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Firebase Auth init failed"})
 		return
 	}
 
-	// Verify token
 	token, err := authClient.VerifyIDToken(context.Background(), idToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid ID token"})
 		return
 	}
 
-	// Extract name and email
+	uid, okUID := token.Claims["user_id"].(string)
 	name, okName := token.Claims["name"].(string)
-	_, okEmail := token.Claims["email"].(string)
-	if !okName || !okEmail {
+	if !okUID || !okName {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token claims"})
 		return
 	}
 
-	// Parse registration number
+	var regNumPattern = regexp.MustCompile(`^\d{2}[A-Z]{3}\d{4}$`)
+
 	parts := strings.Fields(name)
-	if len(parts) < 3 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse registration number from name"})
+	var registrationNo string
+	for _, word := range parts {
+		if regNumPattern.MatchString(strings.ToUpper(word)) {
+			registrationNo = strings.ToUpper(word)
+			break
+		}
+	}
+
+	if registrationNo == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to extract registration number"})
 		return
 	}
-	registrationNo := parts[2]
-
-	// Check if user exists
 	var user models.User
-	result := services.DB.Where("registration_no = ?", registrationNo).First(&user)
+	result := services.DB.Where("uid = ?", uid).First(&user)
 	if result.Error == nil {
 		c.JSON(http.StatusOK, gin.H{"message": "User already exists", "user": user})
 		return
 	}
 
-	// Create new user
 	newUser := models.User{
+		UID:            uid,
 		Username:       name,
 		RegistrationNo: registrationNo,
 		IsAdmin:        false,
@@ -70,4 +74,64 @@ func CreateOrFetchUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User created", "user": newUser})
+}
+
+type PhoneUpdateRequest struct {
+	PhoneNumber string `json:"phone_number"`
+}
+
+func UpdatePhoneNumber(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing or malformed Authorization header"})
+		return
+	}
+	idToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+	authClient, err := services.App.Auth(context.Background())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Firebase Auth init failed"})
+		return
+	}
+
+	token, err := authClient.VerifyIDToken(context.Background(), idToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid ID token"})
+		return
+	}
+
+	uid, ok := token.Claims["user_id"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "UID not found in token"})
+		return
+	}
+
+	var req PhoneUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil || req.PhoneNumber == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid phone number in request"})
+		return
+	}
+
+	// Validate phone number using regex
+	re := regexp.MustCompile(`^[6-9]\d{9}$`)
+	if !re.MatchString(req.PhoneNumber) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Phone number format invalid"})
+		return
+	}
+
+	var user models.User
+	result := services.DB.Where("uid = ?", uid).First(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	user.PhoneNumber = req.PhoneNumber
+	if err := services.DB.Save(&user).Error; err != nil {
+		log.Println("❌ DB Update error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update phone number"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Phone number updated", "user": user})
 }
