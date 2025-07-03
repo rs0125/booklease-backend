@@ -28,10 +28,10 @@ func SeedData() {
 
 	// ✅ Rentals
 	bookID := uint(1)
-	notesID := uint(1)
+	//notesID := uint(1)
 	rentals := []models.Rental{
-		{UserID: 1, BookID: &bookID, NotesID: nil, RentedFrom: time.Now().AddDate(0, 0, -2), DueDate: time.Now().AddDate(0, 0, 5), IsReturned: false},
-		{UserID: 1, BookID: nil, NotesID: &notesID, RentedFrom: time.Now().AddDate(0, 0, -1), DueDate: time.Now().AddDate(0, 0, 6), IsReturned: false},
+		{UserID: 1, BookID: &bookID, RentedFrom: time.Now().AddDate(0, 0, -2), DueDate: time.Now().AddDate(0, 0, 5), IsReturned: false},
+		{UserID: 1, BookID: nil, RentedFrom: time.Now().AddDate(0, 0, -1), DueDate: time.Now().AddDate(0, 0, 6), IsReturned: false},
 	}
 	for _, r := range rentals {
 		DB.Create(&r)

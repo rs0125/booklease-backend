@@ -23,13 +23,14 @@ type Book struct {
 }
 
 type Rental struct {
-	ID         uint `gorm:"primaryKey"`
-	UserID     uint
-	BookID     *uint
-	NotesID    *uint
-	RentedFrom time.Time
-	DueDate    time.Time
-	IsReturned bool
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	UserID      uint      `json:"user_id"`
+	BookID      *uint     `json:"book_id"`
+	OwnerID     *uint     `json:"owner_id"`
+	Description string    `json:"description"`
+	RentedFrom  time.Time `json:"rented_from"`
+	DueDate     time.Time `json:"due_date"`
+	IsReturned  bool      `json:"is_returned"`
 }
 
 type Wishlist struct {
