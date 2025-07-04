@@ -25,12 +25,15 @@ type Book struct {
 type Rental struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
 	UserID      uint      `json:"user_id"`
+	User        User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	BookID      *uint     `json:"book_id"`
+	Book        Book      `gorm:"foreignKey:BookID" json:"book,omitempty"`
 	OwnerID     *uint     `json:"owner_id"`
 	Description string    `json:"description"`
 	RentedFrom  time.Time `json:"rented_from"`
 	DueDate     time.Time `json:"due_date"`
 	IsReturned  bool      `json:"is_returned"`
+	Status      *bool     `json:"status"` // nil = pending, true = accepted, false = rejected
 }
 
 type Wishlist struct {

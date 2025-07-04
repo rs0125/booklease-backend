@@ -12,7 +12,7 @@ import (
 
 func GetBooks(c *gin.Context) {
 	var books []models.Book
-	if err := services.DB.Find(&books).Error; err != nil {
+	if err := services.DB.Order("ID DESC").Find(&books).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch books"})
 		return
 	}
@@ -181,7 +181,7 @@ func Wishlist(c *gin.Context) {
 
 	var books []models.Book
 	if len(bookIDs) > 0 {
-		if err := services.DB.Where("id IN ?", bookIDs).Find(&books).Error; err != nil {
+		if err := services.DB.Where("id IN ?", bookIDs).Order("ID DESC").Find(&books).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch books"})
 			return
 		}

@@ -82,10 +82,94 @@ func GetRentals(c *gin.Context) {
 
 	var rentals []models.Rental
 
-	if err := services.DB.Find(&rentals).Error; err != nil {
+	if err := services.DB.Find(&rentals).Order("ID DESC").Error; err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.IndentedJSON(http.StatusOK, rentals)
+}
+
+func BorrowedMaterials(c *gin.Context) {
+	uid := c.GetString("uid")
+
+	var user models.User
+	if err := services.DB.Where("uid = ?", uid).First(&user).Error; err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	var rentals []models.Rental
+	if err := services.DB.Where("user_id = ?", user.ID).Preload("Book").Find(&rentals).Error; err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, rentals)
+}
+
+func LentMaterials(c *gin.Context) {
+	uid := c.GetString("uid")
+
+	var user models.User
+	if err := services.DB.Where("uid = ?", uid).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	var rentals []models.Rental
+	if err := services.DB.
+		Where("owner_id = ?", user.ID).
+		Preload("Book").
+		Preload("Book.Uploader").
+		Preload("User"). // renter info
+		Find(&rentals).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch lent materials"})
+		return
+	}
+
+	c.JSON(http.StatusOK, rentals)
+}
+
+func DecideRental(c *gin.Context) {
+	uid := c.GetString("uid")
+	rentalID := c.Param("id")
+
+	var user models.User
+	if err := services.DB.Where("uid = ?", uid).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	var rental models.Rental
+	if err := services.DB.First(&rental, rentalID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Rental not found"})
+		return
+	}
+
+	// Check ownership
+	if rental.OwnerID == nil || *rental.OwnerID != user.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to decide this rental"})
+		return
+	}
+
+	var body struct {
+		Accept bool `json:"accept"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rental.Status = &body.Accept
+	if err := services.DB.Save(&rental).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update rental status"})
+		return
+	}
+
+	statusText := "rejected"
+	if body.Accept {
+		statusText = "accepted"
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Rental request " + statusText})
 }

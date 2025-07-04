@@ -29,6 +29,10 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 	{
 		RentalRoutes.POST("/", middleware.RequireAuth(app), api.PostRental)
 		RentalRoutes.GET("/", middleware.RequireAuth(app), api.GetRentals)
+
+		RentalRoutes.GET("/lent", middleware.RequireAuth(app), api.BorrowedMaterials)
+		RentalRoutes.GET("/borrowed", middleware.RequireAuth(app), api.BorrowedMaterials)
+		RentalRoutes.POST("/:id/decision", middleware.RequireAuth(app), api.DecideRental)
 	}
 
 	UserRoutes := r.Group("/user", middleware.RequireAuth(app))
@@ -36,6 +40,7 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		UserRoutes.POST("/signup", api.CreateOrFetchUser)
 		UserRoutes.POST("/phone", api.UpdatePhoneNumber)
 		UserRoutes.GET("/", api.GetUserProfile)
+
 	}
 
 }

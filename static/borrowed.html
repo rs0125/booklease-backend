@@ -1,0 +1,47 @@
+<!-- borrowed.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Borrowed Materials</title>
+</head>
+
+<body>
+    <h2>Borrowed Requests</h2>
+    <div id="borrowed-list"></div>
+
+    <script>
+        const token = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg3NzQ4NTAwMmYwNWJlMDI2N2VmNDU5ZjViNTEzNTMzYjVjNThjMTIiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiU2F1bm9rIFJveSAyM0JFQzAyNTUiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSV9QRGx2cDVYSWtXeDVkODJIakF0dGtvV1J0OUJiUEF4T21pSGxDdV9mYzFibG9nPXM5Ni1jIiwiaXNzIjoiaHR0cHM6Ly9zZWN1cmV0b2tlbi5nb29nbGUuY29tL2Jvb2tsZWFzZS03NTk4NSIsImF1ZCI6ImJvb2tsZWFzZS03NTk4NSIsImF1dGhfdGltZSI6MTc1MTY2NDYyNywidXNlcl9pZCI6ImdMeWVtWGZsWmNQOEV0UlhJd01DQjQ0N2llajEiLCJzdWIiOiJnTHllbVhmbFpjUDhFdFJYSXdNQ0I0NDdpZWoxIiwiaWF0IjoxNzUxNjY0NjI3LCJleHAiOjE3NTE2NjgyMjcsImVtYWlsIjoic2F1bm9rLnJveTIwMjNAdml0c3R1ZGVudC5hYy5pbiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7Imdvb2dsZS5jb20iOlsiMTExNTczNTkyMzI3NjI1NjM5ODMwIl0sImVtYWlsIjpbInNhdW5vay5yb3kyMDIzQHZpdHN0dWRlbnQuYWMuaW4iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJnb29nbGUuY29tIn19.DLrb6LQrInHIXb3DOiUAFk_IVB5ZQAUrv_0CIWLMSu3WkFAirmTfEUmmlTXzrOzcNh-6-E0JRQP4Wib7NC0YjoJdp-LypJhqvLJAnxcGywr4PzdIeSWMbfIpybXirkXsBvS5kCAbxeflo0QrG_7rgeuQUsI4koNEJVe9laX44hLn0x9qH9hheKEqmKB8Cb6Te_64FpTDHgD0La-aFGLoJWvw89wTbfX2kktFYnKYMMWdYPCHMMaQlrnXzX62RmB702Pij2zlZVfYsw9AIStaJMptSquPjZwwKZ-pAvf2B8QG4XxoZ3E4YE2kmRiJYtBTIv_8AKJdiAlBBMEb6dMKpA";
+
+        fetch("http://localhost:8080/rentals/borrowed", {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById("borrowed-list");
+                if (data.length === 0) {
+                    container.innerText = "No borrowed requests.";
+                    return;
+                }
+                data.forEach(rental => {
+                    const div = document.createElement("div");
+                    div.style.border = "1px solid black";
+                    div.style.margin = "10px";
+                    div.style.padding = "10px";
+
+                    div.innerHTML = `
+          <strong>Book:</strong> ${rental.book.title}<br>
+          <strong>Status:</strong> ${rental.status === null ? "Pending" : rental.status ? "Accepted" : "Rejected"}<br>
+          <strong>Rented From:</strong> ${new Date(rental.rented_from).toLocaleDateString()}<br>
+          <strong>Due Date:</strong> ${new Date(rental.due_date).toLocaleDateString()}
+        `;
+                    container.appendChild(div);
+                });
+            });
+    </script>
+</body>
+
+</html>
