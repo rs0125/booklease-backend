@@ -31,9 +31,15 @@ func RequireAuth(app *firebase.App) gin.HandlerFunc {
 			return
 		}
 
+		// email, ok := token.Claims["email"].(string)
+		// if !ok || !strings.HasSuffix(email, "@vitstudent.ac.in") {
+		// 	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Unauthorized domain"})
+		// 	return
+		// }
+
 		email, ok := token.Claims["email"].(string)
-		if !ok || !strings.HasSuffix(email, "@vitstudent.ac.in") {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Unauthorized domain"})
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Email not found" + err.Error()})
 			return
 		}
 

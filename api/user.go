@@ -4,7 +4,9 @@ import (
 	"bookapi/models"
 	"bookapi/services"
 	"errors"
+	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"strings"
@@ -17,21 +19,42 @@ import (
 func CreateOrFetchUser(c *gin.Context) {
 	uid := c.GetString("uid")
 	name := c.GetString("name") // Optional: you can also set this in middleware if needed
+	email := c.GetString("email")
 
-	if uid == "" || name == "" {
+	if uid == "" || name == "" || email == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing user data from token"})
 		return
 	}
 
-	regNumPattern := regexp.MustCompile(`^\d{2}[A-Z]{3}\d{4}$`)
-	parts := strings.Fields(name)
 	var registrationNo string
-	for _, word := range parts {
-		if regNumPattern.MatchString(strings.ToUpper(word)) {
-			registrationNo = strings.ToUpper(word)
-			break
+
+	if strings.HasSuffix(email, "@gmail.com") {
+		// Generate a fallback reg number like "99GEN0421"
+		randomPart := rand.Intn(10000)
+		registrationNo = fmt.Sprintf("99GEN%04d", randomPart)
+	} else {
+		// Try to extract a proper registration number from name
+		regNumPattern := regexp.MustCompile(`^\d{2}[A-Z]{3}\d{4}$`)
+		parts := strings.Fields(name)
+		for _, word := range parts {
+			if regNumPattern.MatchString(strings.ToUpper(word)) {
+				registrationNo = strings.ToUpper(word)
+				break
+			}
 		}
 	}
+
+	//above is for testing, during production need to use below logic only for vit mails
+
+	// regNumPattern := regexp.MustCompile(`^\d{2}[A-Z]{3}\d{4}$`)
+	// parts := strings.Fields(name)
+	// var registrationNo string
+	// for _, word := range parts {
+	// 	if regNumPattern.MatchString(strings.ToUpper(word)) {
+	// 		registrationNo = strings.ToUpper(word)
+	// 		break
+	// 	}
+	// }
 	if registrationNo == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to extract registration number"})
 		return

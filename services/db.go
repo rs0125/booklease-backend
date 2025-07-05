@@ -41,5 +41,6 @@ func InitDatabase() {
 		&models.Wishlist{},
 		&models.Admin{},
 		&models.FAQ{},
+		&models.Notification{},
 	)
 }

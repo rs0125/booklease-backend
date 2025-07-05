@@ -55,12 +55,13 @@ func PostRental(c *gin.Context) {
 	newRental.OwnerID = &book.UploadedBy
 	newRental.IsReturned = false
 
-	fmt.Printf("📝 Final rental to save: %+v\n", newRental)
+	fmt.Printf("Final rental to save: %+v\n", newRental)
 
 	if err := services.DB.Create(&newRental).Error; err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	services.CreateNotification(*&book.UploadedBy, "rental_request", user.Username+" wants to rent \""+book.Title+"\"")
 
 	c.IndentedJSON(http.StatusCreated, newRental)
 
@@ -100,7 +101,7 @@ func BorrowedMaterials(c *gin.Context) {
 	}
 
 	var rentals []models.Rental
-	if err := services.DB.Where("user_id = ?", user.ID).Preload("Book").Find(&rentals).Error; err != nil {
+	if err := services.DB.Where("user_id = ?", user.ID).Order("ID DESC").Preload("Book").Find(&rentals).Error; err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -119,10 +120,11 @@ func LentMaterials(c *gin.Context) {
 
 	var rentals []models.Rental
 	if err := services.DB.
-		Where("owner_id = ?", user.ID).
+		Where("owner_id = ?", user.ID). //add this for excluding self rentals
 		Preload("Book").
 		Preload("Book.Uploader").
 		Preload("User"). // renter info
+
 		Find(&rentals).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch lent materials"})
 		return
@@ -142,7 +144,7 @@ func DecideRental(c *gin.Context) {
 	}
 
 	var rental models.Rental
-	if err := services.DB.First(&rental, rentalID).Error; err != nil {
+	if err := services.DB.Preload("Book").First(&rental, rentalID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Rental not found"})
 		return
 	}
@@ -171,5 +173,7 @@ func DecideRental(c *gin.Context) {
 	if body.Accept {
 		statusText = "accepted"
 	}
+
+	services.CreateNotification(rental.UserID, "rental_status", "Your request to rent \""+rental.Book.Title+"\" was "+statusText)
 	c.JSON(http.StatusOK, gin.H{"message": "Rental request " + statusText})
 }

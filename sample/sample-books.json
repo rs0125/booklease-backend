@@ -1,0 +1,47 @@
+[
+    {
+        "title": "Learn Go in 24 Hours",
+        "subject": "Programming",
+        "description": "Quick-start guide to Golang with examples and exercises.",
+        "category": "Reference",
+        "file_path": "uploads/go_24hours.pdf",
+        "type": "PDF",
+        "valid_till": "2026-01-01T00:00:00Z"
+    },
+    {
+        "title": "Introduction to AI",
+        "subject": "Artificial Intelligence",
+        "description": "Foundations of AI including search, logic, and learning.",
+        "category": "Academic",
+        "file_path": "uploads/intro_ai.pdf",
+        "type": "PDF",
+        "valid_till": "2025-12-31T23:59:59Z"
+    },
+    {
+        "title": "Mastering Data Structures",
+        "subject": "Computer Science",
+        "description": "Step-by-step guide to all major data structures.",
+        "category": "Academic",
+        "file_path": "uploads/data_structures.pdf",
+        "type": "PDF",
+        "valid_till": "2026-06-15T00:00:00Z"
+    },
+    {
+        "title": "Operating Systems Simplified",
+        "subject": "Systems",
+        "description": "Simple explanations of processes, memory, and scheduling.",
+        "category": "Textbook",
+        "file_path": "uploads/os_simplified.pdf",
+        "type": "PDF",
+        "valid_till": "2025-11-30T00:00:00Z"
+    },
+    {
+        "title": "The Startup Handbook",
+        "subject": "Business",
+        "description": "From idea to execution: how to launch your startup.",
+        "category": "Self-help",
+        "file_path": "uploads/startup_handbook.pdf",
+        "type": "PDF",
+        "valid_till": "2026-03-01T00:00:00Z"
+    }
+]

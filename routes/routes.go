@@ -19,6 +19,7 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 	{
 		BookRoutes.GET("/", api.GetBooks)
 		BookRoutes.GET("/:id", api.GetBook)
+		BookRoutes.GET("/mybooks", middleware.RequireAuth(app), api.MyBooks)
 		BookRoutes.DELETE("/:id", middleware.RequireAuth(app), api.DeleteBook)
 		BookRoutes.POST("/", middleware.RequireAuth(app), api.CreateBook)
 		BookRoutes.POST("/:id/wishlist", middleware.RequireAuth(app), api.AddToWishlist)
@@ -30,7 +31,7 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		RentalRoutes.POST("/", middleware.RequireAuth(app), api.PostRental)
 		RentalRoutes.GET("/", middleware.RequireAuth(app), api.GetRentals)
 
-		RentalRoutes.GET("/lent", middleware.RequireAuth(app), api.BorrowedMaterials)
+		RentalRoutes.GET("/lent", middleware.RequireAuth(app), api.LentMaterials)
 		RentalRoutes.GET("/borrowed", middleware.RequireAuth(app), api.BorrowedMaterials)
 		RentalRoutes.POST("/:id/decision", middleware.RequireAuth(app), api.DecideRental)
 	}
@@ -41,6 +42,14 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		UserRoutes.POST("/phone", api.UpdatePhoneNumber)
 		UserRoutes.GET("/", api.GetUserProfile)
 
+	}
+
+	NotiRoutes := r.Group("/notifications")
+	{
+		NotiRoutes.GET("/", middleware.RequireAuth(app), api.Notifications)
+		NotiRoutes.DELETE("/:id", middleware.RequireAuth(app), api.DeleteNotification)
+		NotiRoutes.PATCH("/:id/seen", middleware.RequireAuth(app), api.MarkNotificationSeen)
+		NotiRoutes.DELETE("/", middleware.RequireAuth(app), api.DeleteAllNotifications)
 	}
 
 }

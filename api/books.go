@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -33,6 +34,32 @@ func GetBook(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, book)
+}
+
+func MyBooks(c *gin.Context) {
+	uid := c.GetString("uid")
+	if uid == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "could not authorize"})
+		return
+	}
+
+	var user models.User
+	if err := services.DB.Where("uid=?", uid).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	log.Println("uid from context:", uid)
+
+	log.Printf("Fetched user ID: %v\n", user.ID)
+
+	var userBooks []models.Book
+	if err := services.DB.Where("uploaded_by = ?", user.ID).Order("ID DESC").Find(&userBooks).Error; err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Books not found for this user" + err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, userBooks)
+
 }
 
 func CreateBook(c *gin.Context) {
