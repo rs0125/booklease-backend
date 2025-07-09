@@ -34,6 +34,7 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		RentalRoutes.GET("/lent", middleware.RequireAuth(app), api.LentMaterials)
 		RentalRoutes.GET("/borrowed", middleware.RequireAuth(app), api.BorrowedMaterials)
 		RentalRoutes.POST("/:id/decision", middleware.RequireAuth(app), api.DecideRental)
+		RentalRoutes.DELETE("/delete/:id", middleware.RequireAuth(app), api.DeleteRental)
 	}
 
 	UserRoutes := r.Group("/user", middleware.RequireAuth(app))

@@ -5,6 +5,7 @@ import (
 	"bookapi/services"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -91,6 +92,45 @@ func GetRentals(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, rentals)
 }
 
+func DeleteRental(c *gin.Context) {
+	uid := c.GetString("uid")
+	if uid == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	rentalIDStr := c.Param("id")
+	rentalID, err := strconv.ParseUint(rentalIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid rental ID"})
+		return
+	}
+
+	var user models.User
+	if err := services.DB.Where("uid = ?", uid).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	var rental models.Rental
+	if err := services.DB.First(&rental, rentalID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Rental not found"})
+		return
+	}
+
+	if rental.UserID != user.ID && !user.IsAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not authorized to delete this rental"})
+		return
+	}
+
+	if err := services.DB.Delete(&rental).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete rental"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Rental deleted successfully"})
+}
+
 func BorrowedMaterials(c *gin.Context) {
 	uid := c.GetString("uid")
 
@@ -167,6 +207,20 @@ func DecideRental(c *gin.Context) {
 	if err := services.DB.Save(&rental).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update rental status"})
 		return
+	}
+
+	if body.Accept {
+		var book models.Book
+		if err := services.DB.First(&book, rental.BookID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch book"})
+			return
+		}
+
+		book.Available = false
+		if err := services.DB.Save(&book).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book availability"})
+			return
+		}
 	}
 
 	statusText := "rejected"
