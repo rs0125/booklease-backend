@@ -131,6 +131,55 @@ func DeleteRental(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Rental deleted successfully"})
 }
 
+func ReturnRental(c *gin.Context) {
+	uid := c.GetString("uid")
+	rentalID := c.Param("id")
+
+	var user models.User
+	if err := services.DB.Where("uid = ?", uid).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	var rental models.Rental
+	if err := services.DB.Preload("Book").First(&rental, rentalID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Rental not found"})
+		return
+	}
+
+	if rental.UserID != user.ID && !user.IsAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not authorized to update this rental"})
+		return
+	}
+
+	if rental.Status == nil || !*rental.Status {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Rental has not been accepted yet"})
+		return
+	}
+
+	if rental.IsReturned {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Rental already marked as returned"})
+		return
+	}
+
+	rental.IsReturned = true
+	if err := services.DB.Save(&rental).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update rental"})
+		return
+	}
+
+	//  mark book as available
+	var book models.Book
+	if err := services.DB.First(&book, rental.BookID).Error; err == nil {
+		book.Available = true
+		services.DB.Save(&book)
+	}
+
+	services.CreateNotification(*rental.OwnerID, "book_returned", "Book \""+rental.Book.Title+"\" was returned!")
+
+	c.JSON(http.StatusOK, gin.H{"message": "Book returned successfully"})
+}
+
 func BorrowedMaterials(c *gin.Context) {
 	uid := c.GetString("uid")
 
