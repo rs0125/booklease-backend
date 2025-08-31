@@ -31,8 +31,8 @@ func RegisterAPIRoutes(r *gin.Engine, app *firebase.App) {
 		RentalRoutes.POST("/", middleware.RequireAuth(app), api.PostRental)
 		RentalRoutes.GET("/", middleware.RequireAuth(app), api.GetRentals)
 
-		RentalRoutes.GET("/lent", middleware.RequireAuth(app), api.LentMaterials)
-		RentalRoutes.GET("/borrowed", middleware.RequireAuth(app), api.BorrowedMaterials)
+		RentalRoutes.GET("/lent", middleware.RequireAuth(app), api.LentMaterials)         // books listed by user that someone has rented - lent
+		RentalRoutes.GET("/borrowed", middleware.RequireAuth(app), api.BorrowedMaterials) //books that user has borrowed
 		RentalRoutes.POST("/:id/decision", middleware.RequireAuth(app), api.DecideRental)
 		RentalRoutes.DELETE("/delete/:id", middleware.RequireAuth(app), api.DeleteRental)
 

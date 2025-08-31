@@ -16,7 +16,8 @@ func main() {
 	services.InitDatabase() // ← Initialize DB here
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // or "*" for all
+
+		AllowOrigins:     []string{"http://127.0.0.1:5500"}, // or "*" for all
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},

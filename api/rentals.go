@@ -52,6 +52,12 @@ func PostRental(c *gin.Context) {
 		return
 	}
 
+	// Prevent the user from renting their own book.
+	if book.UploadedBy == user.ID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "You cannot rent your own book"})
+		return
+	}
+
 	newRental.UserID = user.ID
 	newRental.OwnerID = &book.UploadedBy
 	newRental.IsReturned = false

@@ -13,7 +13,7 @@ import (
 
 func GetBooks(c *gin.Context) {
 	var books []models.Book
-	if err := services.DB.Order("ID DESC").Find(&books).Error; err != nil {
+	if err := services.DB.Preload("Uploader").Order("ID DESC").Find(&books).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch books"})
 		return
 	}
@@ -85,7 +85,7 @@ func CreateBook(c *gin.Context) {
 	newBook.UploadedBy = user.ID
 	newBook.Available = true
 
-	if err := services.DB.Create(&newBook).Error; err != nil {
+	if err := services.DB.Preload("Uploader").Create(&newBook).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

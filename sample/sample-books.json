@@ -43,5 +43,59 @@
         "file_path": "uploads/startup_handbook.pdf",
         "type": "PDF",
         "valid_till": "2026-03-01T00:00:00Z"
+    },
+    {
+        "title": "Quantum Mechanics Explained",
+        "subject": "Physics",
+        "description": "An introductory text on the core principles of quantum mechanics.",
+        "category": "Academic",
+        "file_path": "uploads/quantum_mechanics.pdf",
+        "type": "PDF",
+        "valid_till": "2027-08-20T00:00:00Z"
+    },
+    {
+        "title": "The Great Gatsby",
+        "subject": "Literature",
+        "description": "A classic novel set in the Jazz Age on Long Island.",
+        "category": "Fiction",
+        "file_path": "uploads/great_gatsby.epub",
+        "type": "EPUB",
+        "valid_till": "2026-12-01T00:00:00Z"
+    },
+    {
+        "title": "A Brief History of Time",
+        "subject": "Cosmology",
+        "description": "From the Big Bang to black holes, by Stephen Hawking.",
+        "category": "Non-Fiction",
+        "file_path": "uploads/history_of_time.pdf",
+        "type": "PDF",
+        "valid_till": "2028-01-10T00:00:00Z"
+    },
+    {
+        "title": "The Go Programming Language",
+        "subject": "Computer Science",
+        "description": "The official book on the Go language, covering specification and implementation.",
+        "category": "Reference",
+        "file_path": "uploads/go_language.pdf",
+        "type": "PDF",
+        "valid_till": "2027-05-30T00:00:00Z"
+    },
+    {
+        "title": "Sapiens: A Brief History of Humankind",
+        "subject": "History",
+        "description": "A survey of the history of humankind by Yuval Noah Harari.",
+        "category": "Non-Fiction",
+        "file_path": "uploads/sapiens.epub",
+        "type": "EPUB",
+        "valid_till": "2026-11-25T00:00:00Z"
+    },
+    {
+        "title": "Principles of Microeconomics",
+        "subject": "Economics",
+        "description": "Covers the basic principles of supply, demand, and market behavior.",
+        "category": "Academic",
+        "file_path": "uploads/microeconomics.pdf",
+        "type": "PDF",
+        "valid_till": "2028-03-18T00:00:00Z"
     }
 ]
